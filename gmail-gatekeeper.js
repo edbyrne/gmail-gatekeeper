@@ -131,10 +131,8 @@ function processNewMessages() {
   const repliedTo = getRepliedSenders_();
   const aliases = getAliases_();
   
-  // Combine personal whitelist and common services
-  const allWhitelisted = new Set(
-    [...WHITELISTED_DOMAINS, ...COMMON_SERVICES].map(d => d.toLowerCase())
-  );
+  // Combine personal whitelist and common services into an array for endsWith matching
+  const allWhitelisted = [...WHITELISTED_DOMAINS, ...COMMON_SERVICES].map(d => d.toLowerCase());
   
   for (const thread of threads) {
     const messages = thread.getMessages();
@@ -148,8 +146,9 @@ function processNewMessages() {
     // Skip if sender is you (any alias)
     if (aliases.has(senderEmail.toLowerCase())) continue;
     
-    // Skip if domain is whitelisted or a common service
-    if (domain && allWhitelisted.has(domain)) continue;
+    // Skip if domain matches or is a subdomain of a whitelisted domain
+    // e.g. "email.amazon.com" matches "amazon.com"
+    if (domain && allWhitelisted.some(w => domain === w || domain.endsWith("." + w))) continue;
     
     // Skip if sender is in contacts
     if (contactEmails.has(senderEmail.toLowerCase())) continue;
@@ -157,10 +156,16 @@ function processNewMessages() {
     // Skip newsletters (emails with List-Unsubscribe header)
     if (SKIP_NEWSLETTERS) {
       try {
-        const rawContent = latestMessage.getRawContent();
-        if (rawContent.match(/^List-Unsubscribe:/mi)) continue;
+        const unsubHeader = latestMessage.getHeader("List-Unsubscribe");
+        if (unsubHeader) continue;
       } catch (e) {
-        Logger.log("Could not check headers for: " + senderEmail);
+        // Fallback: check raw content if getHeader fails
+        try {
+          const rawContent = latestMessage.getRawContent();
+          if (rawContent.match(/^List-Unsubscribe:/mi)) continue;
+        } catch (e2) {
+          Logger.log("Could not check headers for: " + senderEmail);
+        }
       }
     }
     
