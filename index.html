@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gmail Gatekeeper — Filter Unknown Senders, Charge for Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #FAF8F5;
+    --text: #1A1A1A;
+    --text-secondary: #5C5C5C;
+    --accent: #C84B31;
+    --accent-light: #FFF0EC;
+    --border: #E0DBD4;
+    --code-bg: #F0EDE8;
+    --card-bg: #FFFFFF;
+    --step-bg: #F5F2EE;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 80px 0 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .wide-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(42px, 6vw, 64px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto 36px;
+    line-height: 1.6;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--text);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .download-btn:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .download-btn svg { width: 18px; height: 18px; }
+
+  section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-of-type { border-bottom: none; }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin-top: 32px;
+  }
+
+  p { margin-bottom: 16px; }
+  p:last-child { margin-bottom: 0; }
+
+  .section-lead {
+    color: var(--text-secondary);
+    font-size: 18px;
+    margin-bottom: 36px;
+  }
+
+  /* ── Three Cards ── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-top: 36px;
+  }
+
+  @media (max-width: 768px) {
+    .features { grid-template-columns: 1fr; }
+  }
+
+  .feature-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .feature-card .number {
+    font-family: 'Instrument Serif', serif;
+    font-size: 48px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    margin-top: 0;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .feature-card p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── Steps ── */
+  .step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+    align-items: start;
+  }
+
+  .step-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--step-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    padding-top: 10px;
+  }
+
+  .step-content strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .step-content p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    background: var(--code-bg);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 12px 0 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* ── Troubleshooting ── */
+  .problem {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+
+  .problem summary {
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 16px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .problem summary::before {
+    content: '+';
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    color: var(--accent);
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .problem[open] summary::before {
+    content: '−';
+  }
+
+  .problem summary::-webkit-details-marker { display: none; }
+
+  .problem .answer {
+    margin-top: 16px;
+    padding-left: 36px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .note {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  footer {
+    padding: 48px 0;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  a { color: var(--accent); }
+
+  ul {
+    padding-left: 20px;
+    margin: 8px 0 16px;
+  }
+
+  li {
+    margin-bottom: 6px;
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+
+  .permissions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 15px;
+  }
+
+  .permissions-table th,
+  .permissions-table td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .permissions-table th {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+  }
+
+  .permissions-table td:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .risk-low {
+    color: #3a7d44;
+    font-weight: 500;
+  }
+
+  .risk-med {
+    color: #c08b00;
+    font-weight: 500;
+  }
+
+  /* ── Services Grid ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .services-grid span {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--code-bg);
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="tag">Free &middot; Open Source &middot; Google Apps Script</div>
+    <h1>Gmail <em>Gatekeeper</em></h1>
+    <p class="subtitle">A free script that filters unknown senders out of your inbox and optionally charges them $5 to get through. Lets newsletters and common services through. Takes 10 minutes to set up. Runs forever.</p>
+    <a href="gmail-gatekeeper.js" download class="download-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+      Download Script
+    </a>
+  </div>
+</header>
+
+<!-- ── What It Does ── -->
+<section>
+  <div class="wide-container">
+    <h2>What it does</h2>
+    <p class="section-lead">Three layers of filtering in one script. Use any combination.</p>
+
+    <div class="features">
+      <div class="feature-card">
+        <div class="number">1</div>
+        <h3>Unknown Sender Filter</h3>
+        <p>Every 15 minutes, the script checks your inbox. If a sender isn't in your Google Contacts, your "Other Contacts" (people you've emailed), or a whitelisted domain — it gets labeled and moved out of your inbox.</p>
+      </div>
+      <div class="feature-card">
+        <div class="number">2</div>
+        <h3>Smart Passthrough</h3>
+        <p>Newsletters with unsubscribe headers and emails from 80+ common services (Amazon, FedEx, LinkedIn, your bank, etc.) pass straight through. No false positives from the stuff you actually want.</p>
+      </div>
+      <div class="feature-card">
+        <div class="number">3</div>
+        <h3>Pay-to-Reach Auto-Reply</h3>
+        <p>Optionally sends a one-time auto-reply to unknown senders with a $5 Stripe payment link. If they want to reach you, $5 is nothing. The script won't reply to no-reply addresses, newsletters, or the same person twice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Setup Guide ── -->
+<section>
+  <div class="container">
+    <h2>Setup guide</h2>
+    <p class="section-lead">10 steps. No coding knowledge needed.</p>
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <strong>Create a Stripe Payment Link</strong>
+        <p>Skip this step if you only want the filter without auto-replies. Otherwise:</p>
+        <ul>
+          <li>Go to <a href="https://stripe.com" target="_blank">stripe.com</a> and click <strong>Start now</strong> to create a free account. You'll need to verify your email and add basic info — Stripe doesn't charge you anything to have an account, they just take a small cut of each payment</li>
+          <li>Once in the dashboard, click <strong>More +</strong> in the top nav, then <strong>Payment Links</strong> (or search for "Payment Links" in the dashboard search bar)</li>
+          <li>Click <strong>+ New</strong> to create a payment link. Choose <strong>"Products or subscriptions"</strong></li>
+          <li>Click <strong>Add new product</strong>. Name it something like "Email Delivery Fee" or "Coffee for My Inbox." Set the price to $5 (or whatever you want). Set it as <strong>One time</strong>, not recurring</li>
+          <li>Under options, make sure <strong>"Collect email address"</strong> is turned on — this is how you'll match payments to senders</li>
+          <li>Click <strong>Create link</strong>. Copy the URL (it looks like <code>https://buy.stripe.com/abc123...</code>)</li>
+        </ul>
+        <p>That URL is what goes in the script. Payments go straight to your bank account on Stripe's standard payout schedule (usually 2 business days). You can issue refunds with one click from the Stripe dashboard.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <strong>Open Google Apps Script</strong>
+        <p>Go to <a href="https://script.google.com" target="_blank">script.google.com</a> and click <strong>New Project</strong>. Make sure you're signed into the Google account whose Gmail you want to filter.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <strong>Paste the script</strong>
+        <p>Select all the default code (<code>Cmd+A</code> or <code>Ctrl+A</code>), delete it, and paste in the entire contents of the downloaded <code>gmail-gatekeeper.js</code> file. Hit <code>Cmd+S</code> / <code>Ctrl+S</code> to save.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <strong>Configure your settings</strong>
+        <p>Edit the configuration section at the top of the script:</p>
+        <ul>
+          <li>Replace <code>YOUR_LINK_HERE</code> with your Stripe Payment Link URL</li>
+          <li>Replace <code>Your Name</code> with your actual name</li>
+          <li>Add your trusted domains to <code>WHITELISTED_DOMAINS</code> (your company domain, etc.)</li>
+          <li>Review <code>COMMON_SERVICES</code> — add or remove services as needed</li>
+        </ul>
+        <p>Save again.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">5</div>
+      <div class="step-content">
+        <strong>Add the People API</strong>
+        <p>In the left sidebar, click the <strong>+</strong> next to <strong>Services</strong>. Find <strong>People API</strong> in the list and click <strong>Add</strong>. This lets the script check your contacts.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">6</div>
+      <div class="step-content">
+        <strong>Add the Gmail API</strong>
+        <p>Click <strong>Services (+)</strong> again and add the <strong>Gmail API</strong>. This lets the script detect your send-as aliases so auto-replies come from the right address.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">7</div>
+      <div class="step-content">
+        <strong>Run setup</strong>
+        <p>In the toolbar, click the function dropdown (it probably says <code>myFunction</code>), select <strong>setup</strong>, and hit the <strong>▶ Run</strong> button. Google will ask you to authorize — click through the permissions flow.</p>
+        <div class="note">You'll see a scary "Google hasn't verified this app" screen. Click <strong>Advanced</strong> → <strong>"Go to [project name] (unsafe)"</strong>. This is normal for personal scripts.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">8</div>
+      <div class="step-content">
+        <strong>Verify the trigger</strong>
+        <p>Click the <strong>clock icon (⏰)</strong> in the left sidebar. You should see a trigger listed for <code>processNewMessages</code>, set to run every 15 minutes. If it's there, the filter is live.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">9</div>
+      <div class="step-content">
+        <strong>Test with a friend</strong>
+        <p>Before turning on auto-replies for everyone:</p>
+        <ul>
+          <li>Put a friend's email address in <code>TEST_EMAIL</code> at the top of the script and save</li>
+          <li>Have them email you from that address — make sure it's <strong>not</strong> in your contacts and <strong>not</strong> from a whitelisted domain</li>
+          <li>Select <strong>testRun</strong> from the dropdown and run it — their email gets filtered and archived into the "Unknown Senders" label</li>
+          <li>Select <strong>testAutoReply</strong> and run it — your friend receives the auto-reply with your Stripe link</li>
+          <li>Ask them to confirm it looks right and the payment link works</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">10</div>
+      <div class="step-content">
+        <strong>Go live</strong>
+        <p>Once you're happy with how it looks, change <code>AUTO_REPLY = false</code> to <code>AUTO_REPLY = true</code> at the top of the script, save, and you're done. Every unknown sender will now get auto-replied to with your payment link. The filter runs whether auto-reply is on or not.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section>
+  <div class="container">
+    <h2>How it works</h2>
+
+    <h3>The filter logic</h3>
+    <p>Every 15 minutes, the script pulls your recent inbox messages and checks each sender against five things: your Google Contacts, your "Other Contacts" (everyone you've ever emailed), your whitelisted domains, the common services list, and whether the email has a newsletter-style <code>List-Unsubscribe</code> header. If the sender passes none of those checks, they're unknown.</p>
+    <p>Unknown senders get a label applied and are archived out of your inbox. The label shows unread counts, so you always know when something's there.</p>
+
+    <h3>Newsletter passthrough</h3>
+    <p>Most newsletters and marketing emails include a <code>List-Unsubscribe</code> header (it's required by most email providers). The script checks for this header and lets those emails through to your inbox. Some spam also uses this header, so it's not perfect — but in practice it catches the vast majority of legitimate subscriptions.</p>
+    <p>You can turn this off by setting <code>SKIP_NEWSLETTERS = false</code> if you'd prefer newsletters to be filtered too.</p>
+
+    <h3>Common services whitelist</h3>
+    <p>The script ships with 80+ pre-configured domains for services most people get email from:</p>
+
+    <div class="services-grid">
+      <span>amazon.com</span>
+      <span>fedex.com</span>
+      <span>ups.com</span>
+      <span>usps.com</span>
+      <span>linkedin.com</span>
+      <span>paypal.com</span>
+      <span>stripe.com</span>
+      <span>chase.com</span>
+      <span>delta.com</span>
+      <span>airbnb.com</span>
+      <span>uber.com</span>
+      <span>netflix.com</span>
+      <span>spotify.com</span>
+      <span>apple.com</span>
+      <span>github.com</span>
+      <span>substack.com</span>
+      <span>zoom.us</span>
+      <span>slack.com</span>
+      <span>docusign.com</span>
+      <span>+ 60 more</span>
+    </div>
+
+    <p>You can add or remove domains from the <code>COMMON_SERVICES</code> array in the script at any time.</p>
+
+    <h3>The auto-reply</h3>
+    <p>When enabled, the script sends a single reply to each unknown sender with your Stripe link. It's smart about it:</p>
+    <ul>
+      <li>Never replies to no-reply, mailer-daemon, or notification addresses</li>
+      <li>Never replies to bulk mail (newsletters with unsubscribe headers)</li>
+      <li>Never replies to the same sender twice</li>
+      <li>Replies from whichever of your email addresses they wrote to</li>
+    </ul>
+    <p>You can fully customize the auto-reply by editing <code>AUTO_REPLY_SUBJECT</code> and <code>AUTO_REPLY_BODY</code> near the top of the script. Change the wording, the tone, the price — whatever you want. The <code>${STRIPE_LINK}</code> variable automatically inserts your payment link. Use <code>${YOUR_NAME}</code> to insert your name. Test any changes by running <code>testAutoReply</code> to send it to a friend before going live.</p>
+
+    <h3>What to charge (and where the money goes)</h3>
+    <p>The $5 default is just a suggestion. You can set any amount in Stripe and frame it however fits your style:</p>
+    <ul>
+      <li><strong>A coffee for my inbox</strong> — $5 keeps it casual and low-friction</li>
+      <li><strong>A carbon credit</strong> — set up a Stripe link that donates to a carbon offset provider. Your inbox funds climate action</li>
+      <li><strong>A charity donation</strong> — link to a charity you care about. Senders pay to reach you and the money goes somewhere good</li>
+      <li><strong>A higher bar</strong> — $25 or $50 if you want a real filter. Recruiters and salespeople with budget won't blink; tire-kickers will</li>
+      <li><strong>Pay what you want</strong> — Stripe supports customer-chosen amounts if you don't want to set a fixed price</li>
+    </ul>
+    <p>Tweak the auto-reply text to match whatever you choose. If you're donating the proceeds, say so — it makes the whole thing feel less like a toll booth and more like a feature.</p>
+
+    <h3>When someone pays</h3>
+    <p>Right now, there's no automatic Stripe-to-Gmail integration — paying doesn't auto-deliver the email to your inbox. You'll need to check your Stripe dashboard periodically, see who paid, then search for their email in your "Unknown Senders" label to read it and decide whether to reply. Add them to your contacts if you want future emails to come straight through.</p>
+    <p>This is a manual step by design. It keeps the script simple and dependency-free. If demand warrants it, a future version may automate this.</p>
+
+    <h3>Adding legitimate senders</h3>
+    <p>If a real person gets filtered, just add them to your Google Contacts. Next time the script runs, they'll pass right through. In Gmail, you can hover over a sender's name and click "Add to contacts" — takes two seconds. For an entire domain, add it to <code>WHITELISTED_DOMAINS</code> or <code>COMMON_SERVICES</code>.</p>
+
+    <h3>Trigger frequency</h3>
+    <p>The script defaults to running every 15 minutes, which is the sweet spot for most people. You can change this by editing the <code>setup</code> function — look for <code>.everyMinutes(15)</code> and change it to <code>.everyMinutes(5)</code> or <code>.everyMinutes(10)</code>. After editing, run <code>setup</code> again to replace the old trigger.</p>
+    <p>Don't go lower than every 5 minutes. Google Apps Script has a daily execution quota — 90 minutes for regular Gmail accounts, 6 hours for Google Workspace. Each run hits both the Gmail and People API, so at very high frequencies you'll burn through the quota and the script will stop running partway through the day. At 15 minutes (96 runs/day), you're well within limits. At 5 minutes (288 runs/day), you're still fine but closer to the edge.</p>
+    <div class="note">Apps Script's minimum interval is 1 minute, but at that frequency (1,440 runs/day) you'll almost certainly exceed your quota. Stick to 5–15 minutes.</div>
+
+    <h3>Security &amp; permissions</h3>
+    <p>The script runs entirely on Google's servers. No data leaves Google's infrastructure. There are no external API calls — the Stripe link in the auto-reply is just a URL in the email body.</p>
+
+    <table class="permissions-table">
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th>What it does</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Gmail (full)</td>
+          <td>Search inbox, add labels, archive, send replies</td>
+          <td><span class="risk-med">Medium</span></td>
+        </tr>
+        <tr>
+          <td>People API</td>
+          <td>Read-only access to your contacts</td>
+          <td><span class="risk-low">Low</span></td>
+        </tr>
+        <tr>
+          <td>Gmail API</td>
+          <td>Read your send-as aliases (read-only)</td>
+          <td><span class="risk-low">Low</span></td>
+        </tr>
+        <tr>
+          <td>Script triggers</td>
+          <td>Create the 15-minute recurring timer</td>
+          <td><span class="risk-low">Low</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">The Gmail "full access" scope is broad because Google doesn't offer fine-grained permissions for Apps Script. The script only reads, labels, archives, and sends — it never deletes anything. Keep the project private and don't share editor access.</div>
+  </div>
+</section>
+
+<!-- ── Troubleshooting ── -->
+<section>
+  <div class="container">
+    <h2>Common problems</h2>
+    <p class="section-lead">Most issues happen during setup. Here's what to look for.</p>
+
+    <details class="problem">
+      <summary>"Google hasn't verified this app" warning</summary>
+      <div class="answer">
+        <p>This is normal for personal Apps Scripts. Click <strong>Advanced</strong> at the bottom left, then click <strong>"Go to [project name] (unsafe)"</strong>. Google shows this because you haven't submitted the script for their app review process, which is only needed for public apps.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>"Something went wrong" after clicking Advanced</summary>
+      <div class="answer">
+        <p>Usually a multi-account session issue. Your browser is confused about which Google account to authorize. Fix: open an <strong>incognito window</strong>, sign into only the Google account you want, go to <a href="https://script.google.com" target="_blank">script.google.com</a>, and try again from there.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>"ReferenceError: People is not defined"</summary>
+      <div class="answer">
+        <p>You haven't added the People API as a service. In the left sidebar, click the <strong>+</strong> next to <strong>Services</strong>, find <strong>People API</strong>, and click <strong>Add</strong>. Then run the function again.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Function dropdown only shows "myFunction"</summary>
+      <div class="answer">
+        <p>The script didn't get pasted in correctly. Go back to the code editor, select all (<code>Cmd+A</code>), delete, and paste the full script again. Save. The dropdown should now show <code>setup</code>, <code>testRun</code>, <code>testAutoReply</code>, and others.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>No trigger appears after running setup</summary>
+      <div class="answer">
+        <p>Make sure you selected <strong>setup</strong> from the function dropdown before clicking Run. If you ran a different function, the trigger won't be created. Select <code>setup</code>, run it, then check the Triggers tab (clock icon in the left sidebar).</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Script shows the wrong developer email in authorization</summary>
+      <div class="answer">
+        <p>If you're logged into multiple Google accounts, the OAuth flow can pick the wrong one. The developer email shown doesn't affect functionality — the script runs under whichever account owns the Apps Script project. If it bothers you, use an incognito window with only one account signed in.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Emails from known senders are getting filtered</summary>
+      <div class="answer">
+        <p>The sender isn't in your Google Contacts or "Other Contacts." Add them to your contacts and they'll be whitelisted on the next run. If it's an entire domain (like a company), add it to the <code>WHITELISTED_DOMAINS</code> or <code>COMMON_SERVICES</code> array in the script.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Newsletters are getting filtered</summary>
+      <div class="answer">
+        <p>Check that <code>SKIP_NEWSLETTERS</code> is set to <code>true</code> at the top of the script. If it already is, the newsletter may not include a <code>List-Unsubscribe</code> header (some smaller newsletters don't). In that case, add the sender's domain to <code>WHITELISTED_DOMAINS</code>.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Auto-reply isn't being sent</summary>
+      <div class="answer">
+        <p>Check a few things: (1) Is <code>AUTO_REPLY</code> set to <code>true</code>? (2) Has the script already replied to that sender before? Each sender only gets one reply. (3) Is it a no-reply address or newsletter? The script skips those. (4) Check the <strong>Executions</strong> tab (left sidebar) for error logs.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Google Workspace admin blocks the script</summary>
+      <div class="answer">
+        <p>If you're on Google Workspace (not regular Gmail), your admin may need to allow internal apps. Go to <a href="https://admin.google.com" target="_blank">admin.google.com</a> → <strong>Security</strong> → <strong>Access and data control</strong> → <strong>API controls</strong> → <strong>Settings</strong>. Make sure "Internal apps" is set to <strong>"Trust internal apps"</strong> and "Unconfigured third-party apps" is set to <strong>"Allow."</strong></p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>I want to reset and re-send auto-replies to everyone</summary>
+      <div class="answer">
+        <p>Select <code>resetRepliedSenders</code> from the function dropdown and run it. This clears the list of senders who've already received an auto-reply, so the next time they email, they'll get one again.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Will it run if my computer is off?</summary>
+      <div class="answer">
+        <p>Yes. Google Apps Script runs on Google's servers, not your computer. Once the trigger is set, it runs 24/7 regardless of whether your computer is on, off, or disconnected.</p>
+      </div>
+    </details>
+
+    <details class="problem">
+      <summary>Will it work with email clients like Apple Mail or Outlook?</summary>
+      <div class="answer">
+        <p>Yes. The script runs server-side on Gmail before your client syncs. Labels show up as folders in IMAP clients. You may need to subscribe to the "Unknown Senders" folder in your client's settings for it to appear in the sidebar.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <p>Gmail Gatekeeper is free and open source. Built with Google Apps Script + Stripe.</p>
+    <p style="margin-top: 8px;">Works with Gmail and Google Workspace. No server, no app, no subscription.</p>
+  </div>
+</footer>
+
+</body>
+</html>
