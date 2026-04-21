@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configure Gmail Gatekeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #FAF8F5;
+    --text: #1A1A1A;
+    --text-secondary: #5C5C5C;
+    --accent: #C84B31;
+    --accent-light: #FFF0EC;
+    --border: #E0DBD4;
+    --code-bg: #F0EDE8;
+    --card-bg: #FFFFFF;
+    --step-bg: #F5F2EE;
+    --success: #3a7d44;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 20px;
+  }
+
+  .back-link:hover { color: var(--accent); }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(34px, 5vw, 48px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .lead {
+    color: var(--text-secondary);
+    font-size: 17px;
+    max-width: 560px;
+  }
+
+  main { padding: 40px 0 80px; }
+
+  section {
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .section-hint {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .hint {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="url"]:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .field { margin-bottom: 20px; }
+
+  /* Preset radio cards */
+  .presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .presets { grid-template-columns: 1fr; }
+  }
+
+  .preset-card {
+    position: relative;
+    cursor: pointer;
+    padding: 16px 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.15s;
+  }
+
+  .preset-card:hover { border-color: var(--accent); }
+
+  .preset-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .preset-card input:checked ~ .preset-title {
+    color: var(--accent);
+  }
+
+  .preset-card:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .preset-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .preset-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Toggles */
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-text { flex: 1; }
+
+  .toggle-text strong {
+    display: block;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  .toggle-text .hint {
+    margin: 0;
+  }
+
+  .switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    margin-top: 2px;
+  }
+
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.15s;
+  }
+
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .switch:has(input:checked) {
+    background: var(--accent);
+  }
+
+  .switch:has(input:checked)::after {
+    left: 20px;
+  }
+
+  /* Download bar */
+  .download-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 16px 0;
+    margin-top: 40px;
+    z-index: 10;
+  }
+
+  .download-bar .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .download-bar-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--text);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .download-btn:hover:not(:disabled) {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .download-btn svg { width: 16px; height: 16px; }
+
+  .note {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .note code, .hint code {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  a { color: var(--accent); }
+
+  .status {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .status.visible { display: block; }
+
+  .status.error {
+    background: #fee;
+    border: 1px solid #e5c5c5;
+    color: #a33;
+  }
+
+  .status.success {
+    background: #efe;
+    border: 1px solid #c5e5c5;
+    color: var(--success);
+  }
+
+  details.preview {
+    margin-top: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  details.preview summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    list-style: none;
+  }
+
+  details.preview summary::-webkit-details-marker { display: none; }
+
+  details.preview summary::before {
+    content: '▸ ';
+    color: var(--accent);
+    display: inline-block;
+    transition: transform 0.15s;
+  }
+
+  details.preview[open] summary::before { content: '▾ '; }
+
+  details.preview pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 0 16px 16px;
+    max-height: 400px;
+    overflow: auto;
+    color: var(--text-secondary);
+    white-space: pre;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Gatekeeper</a>
+    <h1>Configure your <em>Gatekeeper</em></h1>
+    <p class="lead">Pick a strictness preset, flip a few toggles, and download a script that's already set up for you. No editing required.</p>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <div id="loadStatus" class="status"></div>
+
+    <form id="configForm">
+
+      <!-- Strictness Preset -->
+      <section>
+        <h2>Strictness</h2>
+        <p class="section-hint">How much slack should unknown senders get?</p>
+
+        <div class="presets">
+          <label class="preset-card">
+            <input type="radio" name="strictness" value="strict">
+            <div class="preset-title">Strict</div>
+            <div class="preset-desc">Filter aggressively. If in doubt, archive.</div>
+          </label>
+          <label class="preset-card">
+            <input type="radio" name="strictness" value="balanced" checked>
+            <div class="preset-title">Balanced</div>
+            <div class="preset-desc">Cuts false positives. Recommended.</div>
+          </label>
+          <label class="preset-card">
+            <input type="radio" name="strictness" value="loose">
+            <div class="preset-title">Loose</div>
+            <div class="preset-desc">Only blocks obvious cold outreach.</div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Your Info -->
+      <section>
+        <h2>Your info</h2>
+        <p class="section-hint">These go into your auto-reply text.</p>
+
+        <div class="field">
+          <label for="yourName">Your name</label>
+          <input type="text" id="yourName" value="Your Name" required>
+          <div class="hint">Appears in the default auto-reply (&ldquo;You haven&rsquo;t emailed with [name] before&hellip;&rdquo;).</div>
+        </div>
+
+        <div class="field">
+          <label for="stripeLink">Stripe Payment Link URL</label>
+          <input type="url" id="stripeLink" value="https://buy.stripe.com/YOUR_LINK_HERE" placeholder="https://buy.stripe.com/...">
+          <div class="hint">Create one at stripe.com → Payment Links. Any amount, one-time payment. Leave the default if you don&rsquo;t want auto-replies.</div>
+        </div>
+
+        <div class="field">
+          <label for="testEmail">Test email address</label>
+          <input type="email" id="testEmail" value="friend@example.com">
+          <div class="hint">A friend&rsquo;s address you&rsquo;ll use to test the auto-reply before going live.</div>
+        </div>
+      </section>
+
+      <!-- Behavior -->
+      <section>
+        <h2>Behavior</h2>
+        <p class="section-hint">Each preset sets sensible defaults — change only what you need.</p>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <strong>Archive filtered mail out of inbox</strong>
+            <div class="hint">Off = apply the label but leave in inbox. Good for testing.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="skipInbox" checked></label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <strong>Send auto-reply with Stripe link</strong>
+            <div class="hint">When on, first-time unknown senders receive your payment link. Always off by default — turn on after testing with a friend.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="autoReply"></label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <strong>Auto-deliver paid mail to inbox (⭐ starred)</strong>
+            <div class="hint">When a sender pays via Stripe, their message comes back to your inbox with a star. Requires deploying the script as a web app and setting up a Stripe webhook.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="autoDeliverOnPayment" checked></label>
+        </div>
+      </section>
+
+      <!-- AI Fallback -->
+      <section>
+        <h2>AI fallback <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-secondary);background:var(--code-bg);padding:3px 8px;border-radius:4px;margin-left:8px;vertical-align:middle;">optional</span></h2>
+        <p class="section-hint">For mail that&rsquo;s right on the edge, ask Claude to decide.</p>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <strong>Use Claude Haiku for grey-zone decisions</strong>
+            <div class="hint">When a message has <em>some</em> safe signals but not enough to pass, Claude reads the subject + first 1,500 chars of the body and decides: is this a real person or automated mail? Costs roughly $0.0001 per grey-zone email. Requires an Anthropic API key.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="useAiFallback"></label>
+        </div>
+
+        <div class="note">
+          You&rsquo;ll need an API key from <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>. After installing the script, open Apps Script → Project Settings → Script Properties and add a property called <code>ANTHROPIC_API_KEY</code> with your key as the value. Then run <code>testAIClassifier</code> to confirm it works.
+        </div>
+      </section>
+
+      <!-- Whitelists -->
+      <section>
+        <h2>Your whitelists</h2>
+        <p class="section-hint">People and companies that should always get through, regardless of everything else.</p>
+
+        <div class="field">
+          <label for="whitelistedDomains">Trusted domains (one per line)</label>
+          <textarea id="whitelistedDomains" placeholder="yourcompany.com&#10;daughters-school.edu"></textarea>
+          <div class="hint">Matches subdomains too: <code>yourcompany.com</code> also allows <code>alerts.yourcompany.com</code>.</div>
+        </div>
+
+        <div class="field">
+          <label for="whitelistedEmails">Trusted email addresses (one per line)</label>
+          <textarea id="whitelistedEmails" placeholder="mom@aol.com&#10;dentist@clinic.net"></textarea>
+        </div>
+
+        <div class="note">
+          80+ common services (Amazon, UPS, LinkedIn, PayPal, your bank&hellip;) are built-in. You can still edit <code>COMMON_SERVICES</code> in the downloaded script if you need to.
+        </div>
+      </section>
+
+      <!-- Auto-reply content -->
+      <section>
+        <h2>Auto-reply text</h2>
+        <p class="section-hint">Shown only when auto-reply is on. <code>${YOUR_NAME}</code> and <code>${STRIPE_LINK}</code> get substituted automatically.</p>
+
+        <div class="field">
+          <label for="replySubject">Subject</label>
+          <input type="text" id="replySubject" value="Auto-Reply: Filtered Message">
+        </div>
+
+        <div class="field">
+          <label for="replyBody">Body</label>
+          <textarea id="replyBody" rows="10" style="min-height: 180px;">You have not emailed with ${YOUR_NAME} previously and this email has been filtered out of their inbox.
+
+If you believe this to be in error, please send a small payment via the link below and your email will be delivered and starred. Response not guaranteed.
+
+${STRIPE_LINK}
+
+(If this is a technical error your payment will be refunded.)</textarea>
+        </div>
+      </section>
+
+      <details class="preview">
+        <summary>Preview the generated script</summary>
+        <pre id="preview"></pre>
+      </details>
+
+    </form>
+  </div>
+
+  <div class="download-bar">
+    <div class="container">
+      <div class="download-bar-text">Configured. Ready to download.</div>
+      <button type="button" id="downloadBtn" class="download-btn" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+        Download customized script
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+  const SCRIPT_URL = 'gmail-gatekeeper.js';
+  let baseScript = '';
+
+  const statusEl = document.getElementById('loadStatus');
+  const previewEl = document.getElementById('preview');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const form = document.getElementById('configForm');
+
+  // Fetch the base script on page load
+  fetch(SCRIPT_URL)
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(text => {
+      baseScript = text;
+      downloadBtn.disabled = false;
+      render();
+    })
+    .catch(err => {
+      statusEl.textContent = 'Couldn\u2019t load gmail-gatekeeper.js from the server: ' + err.message + '. Try reloading, or download the unconfigured script from the home page.';
+      statusEl.className = 'status error visible';
+    });
+
+  function getConfig() {
+    const strictness = (form.querySelector('input[name=strictness]:checked') || {}).value || 'balanced';
+    return {
+      strictness,
+      yourName: form.yourName.value.trim() || 'Your Name',
+      stripeLink: form.stripeLink.value.trim() || 'https://buy.stripe.com/YOUR_LINK_HERE',
+      testEmail: form.testEmail.value.trim() || 'friend@example.com',
+      autoReply: form.autoReply.checked,
+      skipInbox: form.skipInbox.checked,
+      autoDeliverOnPayment: form.autoDeliverOnPayment.checked,
+      useAiFallback: form.useAiFallback.checked,
+      whitelistedDomains: splitLines(form.whitelistedDomains.value),
+      whitelistedEmails: splitLines(form.whitelistedEmails.value),
+      replySubject: form.replySubject.value.trim() || 'Auto-Reply: Filtered Message',
+      replyBody: form.replyBody.value,
+    };
+  }
+
+  function splitLines(text) {
+    return text.split('\n').map(s => s.trim()).filter(Boolean);
+  }
+
+  function escStr(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  function arrayLiteral(items) {
+    if (!items.length) return '[\n  // add your own\n]';
+    return '[\n' + items.map(i => '  "' + escStr(i) + '",').join('\n') + '\n]';
+  }
+
+  function customize(source, cfg) {
+    return source
+      .replace(/const YOUR_NAME = "[^"]*";/, 'const YOUR_NAME = "' + escStr(cfg.yourName) + '";')
+      .replace(/const STRIPE_LINK = "[^"]*";/, 'const STRIPE_LINK = "' + escStr(cfg.stripeLink) + '";')
+      .replace(/const STRICTNESS = "[^"]*";/, 'const STRICTNESS = "' + cfg.strictness + '";')
+      .replace(/const AUTO_REPLY = (true|false);/, 'const AUTO_REPLY = ' + cfg.autoReply + ';')
+      .replace(/const SKIP_INBOX = (true|false);/, 'const SKIP_INBOX = ' + cfg.skipInbox + ';')
+      .replace(/const AUTO_DELIVER_ON_PAYMENT = (true|false);/, 'const AUTO_DELIVER_ON_PAYMENT = ' + cfg.autoDeliverOnPayment + ';')
+      .replace(/const USE_AI_FALLBACK = (true|false);/, 'const USE_AI_FALLBACK = ' + cfg.useAiFallback + ';')
+      .replace(/const TEST_EMAIL = "[^"]*";/, 'const TEST_EMAIL = "' + escStr(cfg.testEmail) + '";')
+      .replace(/const WHITELISTED_DOMAINS = \[[\s\S]*?\];/, 'const WHITELISTED_DOMAINS = ' + arrayLiteral(cfg.whitelistedDomains) + ';')
+      .replace(/const WHITELISTED_EMAILS = \[[\s\S]*?\];/, 'const WHITELISTED_EMAILS = ' + arrayLiteral(cfg.whitelistedEmails) + ';')
+      .replace(/const AUTO_REPLY_SUBJECT = "[^"]*";/, 'const AUTO_REPLY_SUBJECT = "' + escStr(cfg.replySubject) + '";')
+      .replace(/const AUTO_REPLY_BODY = `[\s\S]*?`;/, 'const AUTO_REPLY_BODY = `' + cfg.replyBody.replace(/\\/g, '\\\\').replace(/`/g, '\\`') + '`;');
+  }
+
+  function render() {
+    if (!baseScript) return;
+    const customized = customize(baseScript, getConfig());
+    previewEl.textContent = customized;
+  }
+
+  function download() {
+    if (!baseScript) return;
+    const customized = customize(baseScript, getConfig());
+    const blob = new Blob([customized], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gmail-gatekeeper.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // Live preview
+  form.addEventListener('input', render);
+  form.addEventListener('change', render);
+  downloadBtn.addEventListener('click', download);
+</script>
+
+</body>
+</html>
